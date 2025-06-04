@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:insert="~{common :: commonHead}">
+    <title>관리자 대시보드 - Product Manager</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        .quick-actions .btn {
+            margin: 0.5rem;
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+        }
+        .admin-menu {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 2rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-0">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/products}">
+                <i class="fas fa-store"></i> Product Manager
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
+                    <span class="navbar-text me-3">
+                        <i class="fas fa-user"></i> 
+                        <span sec:authentication="name"></span>
+                        <small sec:authorize="hasRole('ADMIN')" class="badge bg-warning text-dark ms-1">ADMIN</small>
+                    </span>
+                    <a th:href="@{/products}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-box"></i> 상품관리
+                    </a>
+                    <form method="post" th:action="@{/logout}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-sign-out-alt"></i> 로그아웃
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-4 mb-3">
+                        <i class="fas fa-tachometer-alt"></i> 관리자 대시보드
+                    </h1>
+                    <p class="lead mb-0">시스템 전체를 관리하고 모니터링할 수 있습니다.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="text-center">
+                        <i class="fas fa-crown fa-4x opacity-75"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/products}">홈</a></li>
+                <li class="breadcrumb-item active" aria-current="page">관리자 대시보드</li>
+            </ol>
+        </nav>
+
+        <!-- Quick Actions -->
+        <div class="admin-menu mb-4">
+            <h3 class="mb-4">
+                <i class="fas fa-bolt"></i> 빠른 작업
+            </h3>
+            <div class="quick-actions text-center">
+                <a th:href="@{/admin/users}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-users"></i><br>
+                    <small>사용자 관리</small>
+                </a>
+                <a th:href="@{/products}" class="btn btn-success btn-lg">
+                    <i class="fas fa-box"></i><br>
+                    <small>상품 관리</small>
+                </a>
+                <a th:href="@{/products/new}" class="btn btn-info btn-lg">
+                    <i class="fas fa-plus"></i><br>
+                    <small>상품 등록</small>
+                </a>
+            </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> 시스템 정보
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-server fa-2x text-primary mb-2"></i>
+                                    <h6>시스템 상태</h6>
+                                    <span class="badge bg-success">정상 운영</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-clock fa-2x text-info mb-2"></i>
+                                    <h6>마지막 업데이트</h6>
+                                    <small class="text-muted">방금 전</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="text-center">
+                                    <i class="fas fa-shield-alt fa-2x text-success mb-2"></i>
+                                    <h6>보안 상태</h6>
+                                    <span class="badge bg-success">안전</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history"></i> 최근 활동
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-user-plus text-success"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">새로운 사용자 등록</h6>
+                                    <small class="text-muted">방금 전</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-box text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">상품 정보 업데이트</h6>
+                                    <small class="text-muted">5분 전</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-sign-in-alt text-info"></i>
+                                </div>
+                                <div class="flex-grow-1 ms-3">
+                                    <h6 class="mb-1">관리자 로그인</h6>
+                                    <small class="text-muted">10분 전</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Notice -->
+        <div class="alert alert-warning mt-4">
+            <i class="fas fa-crown"></i> 
+            <strong>관리자 권한</strong>으로 로그인하셨습니다. 모든 시스템 기능에 접근할 수 있습니다.
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <div th:insert="~{common :: commonScript}"></div>
+</body>
+</html>
