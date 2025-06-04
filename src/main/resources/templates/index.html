@@ -1,44 +1,167 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head th:insert="~{common :: commonHead}">
-  <title>Product Manager</title>
+    <title>Product Manager</title>
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .user-info {
+            color: #6c757d;
+            font-size: 0.9em;
+        }
+        .product-actions {
+            white-space: nowrap;
+        }
+    </style>
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-
 <body>
-<div class="container">
-  <h1 class="mt-5">Product List</h1>
-  <a class="btn btn-primary mb-3" th:href="@{/products/new}">Create New Product</a>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/products}">
+                <i class="fas fa-store"></i> Product Manager
+            </a>
+            
+            <div class="navbar-nav ms-auto">
+                <!-- 인증된 사용자만 표시 -->
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center">
+                    <span class="navbar-text me-3 user-info">
+                        <i class="fas fa-user"></i> 
+                        <span sec:authentication="name"></span>
+                        <small sec:authorize="hasRole('ADMIN')" class="badge bg-warning text-dark ms-1">ADMIN</small>
+                        <small sec:authorize="hasRole('USER') and !hasRole('ADMIN')" class="badge bg-info ms-1">USER</small>
+                    </span>
+                    
+                    <!-- 관리자만 표시 - 수정된 부분 -->
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-tachometer-alt"></i> 대시보드
+                    </a>
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-users-cog"></i> 사용자관리
+                    </a>
+                    
+                    <!-- 로그아웃 -->
+                    <form method="post" th:action="@{/logout}" class="d-inline">
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="fas fa-sign-out-alt"></i> 로그아웃
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- 비인증 사용자만 표시 -->
+                <div sec:authorize="!isAuthenticated()" class="d-flex">
+                    <a th:href="@{/login}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="fas fa-sign-in-alt"></i> 로그인
+                    </a>
+                    <a th:href="@{/register}" class="btn btn-light btn-sm">
+                        <i class="fas fa-user-plus"></i> 회원가입
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
 
-  <table class="table table-bordered">
-    <thead>
-    <tr>
-      <th>Product ID</th>
-      <th>Name</th>
-      <th>Brand</th>
-      <th>Made In</th>
-      <th>Price</th>
-      <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="product : ${listProducts}">
-      <td th:text="${product.id}">Product ID</td>
-      <td th:text="${product.name}">Name</td>
-      <td th:text="${product.brand}">Brand</td>
-      <td th:text="${product.madeIn}">Made in</td>
-      <td th:text="${product.price}">Price</td>
-      <td>
-        <a class="btn btn-primary btn-sm" th:href="@{'/products/edit/' + ${product.id}}">Edit</a>
-        <a class="btn btn-danger btn-sm" th:href="@{'/products/delete/' + ${product.id}}">Delete</a>
-      </td>
-    </tr>
-    </tbody>
-  </table>
-</div>
+    <div class="container">
+        <!-- Success/Error Messages -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle"></i> <span th:text="${successMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle"></i> <span th:text="${errorMessage}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
 
-<!-- Bootstrap JS fragment 삽입 -->
-<div th:insert="~{common :: commonScript}"></div>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1 class="mt-5">Product List</h1>
+            <!-- 관리자만 상품 등록 버튼 표시 -->
+            <a sec:authorize="hasRole('ADMIN')" 
+               class="btn btn-primary mb-3" 
+               th:href="@{/products/new}">Create New Product</a>
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Product ID</th>
+                    <th>Name</th>
+                    <th>Brand</th>
+                    <th>Made In</th>
+                    <th>Price</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="product : ${listProducts}">
+                    <td th:text="${product.id}">Product ID</td>
+                    <td th:text="${product.name}">Name</td>
+                    <td th:text="${product.brand}">Brand</td>
+                    <td th:text="${product.madeIn}">Made in</td>
+                    <td th:text="${product.price}">Price</td>
+                    <td>
+                        <!-- 관리자만 Edit/Delete 버튼 표시 -->
+                        <div sec:authorize="hasRole('ADMIN')">
+                            <a class="btn btn-primary btn-sm" th:href="@{'/products/edit/' + ${product.id}}">Edit</a>
+                            <a class="btn btn-danger btn-sm" 
+                               th:href="@{'/products/delete/' + ${product.id}}"
+                               onclick="return confirm('정말로 이 상품을 삭제하시겠습니까?')">Delete</a>
+                        </div>
+                        <!-- 일반 사용자는 조회만 가능 표시 -->
+                        <div sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+                            <span class="text-muted small">조회 전용</span>
+                        </div>
+                    </td>
+                </tr>
+                
+                <!-- 상품이 없을 때 -->
+                <tr th:if="${#lists.isEmpty(listProducts)}">
+                    <td colspan="6" class="text-center text-muted py-4">
+                        <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                        등록된 상품이 없습니다.
+                        <span sec:authorize="hasRole('ADMIN')">
+                            <br><a th:href="@{/products/new}" class="btn btn-primary btn-sm mt-2">
+                                <i class="fas fa-plus"></i> 첫 번째 상품 등록하기
+                            </a>
+                        </span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- User Role Info -->
+        <div class="mt-4">
+            <div sec:authorize="hasRole('USER') and !hasRole('ADMIN')" class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                <strong>일반 사용자</strong>로 로그인하셨습니다. 상품 목록 조회만 가능합니다.
+            </div>
+            <div sec:authorize="hasRole('ADMIN')" class="alert alert-warning">
+                <i class="fas fa-crown"></i> 
+                <strong>관리자</strong>로 로그인하셨습니다. 모든 기능을 사용할 수 있습니다.
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS fragment 삽입 -->
+    <div th:insert="~{common :: commonScript}"></div>
+    
+    <script>
+        // 자동으로 알림 메시지 숨기기
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                if (alert.querySelector('.btn-close')) {
+                    var bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            });
+        }, 5000);
+    </script>
 </body>
 </html>
